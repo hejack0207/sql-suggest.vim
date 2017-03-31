@@ -6,15 +6,33 @@ import autoload.vim_sql_suggest as sut
 
 class VimSqlSuggestTests(unittest.TestCase):
 
+    def test_get_db_type_sqlplus64(self):
+        db_type = sut.get_db_type("sqlplus64 sys/password")
+        self.assertEquals(db_type, "oracle")
+
+    def test_get_db_type_sqlplus(self):
+        db_type = sut.get_db_type("sqlplus")
+        self.assertEquals(db_type, "oracle")
+
+    def test_check_command_output(self):
+        output = sut.check_command_output("""cat <<< "hi" """)
+        self.assertEquals(output, "hi\n")
+
     def test_get_db_specific_query_statuments_with_mysql_database_connection(self):
         table_query, column_query = sut.get_db_specific_query_statements("mysql -u root test")
-        self.assertEqual(table_query, "-e 'SHOW tables;'")
-        self.assertEqual(column_query, "-e 'SHOW COLUMNS FROM")
+        self.assertEqual(table_query,sut.MYSQL_TABLES_QUERY)
+        self.assertEqual(column_query, sut.MYSQL_COLUMNS_QUERY)
 
     def test_get_db_specific_query_statuments_with_psql_database_connection(self):
         table_query, column_query = sut.get_db_specific_query_statements("psql -U Jrock test")
-        self.assertEqual(table_query, "-c \"select tablename from pg_tables where schemaname = 'public'\"")
-        self.assertEqual(column_query, "-c \"select column_name from information_schema.columns where table_name = ")
+        self.assertEqual(table_query, sut.PSQL_TABLES_QUERY)
+        self.assertEqual(column_query, sut.PSQL_COLUMNS_QUERY)
+
+    @patch('subprocess.check_output')
+    def test_get_table_names_for_oracle(self, sb_output):
+        sb_output.return_value = "Tables_in_test\ntable1\ntable2\ntable3"
+        table_list = sut.get_table_names("sqlplus64 test/12345678:192.168.0.1:1251/orcl")
+        self.assertEqual(table_list, [{"word": "table1"}, {"word": "table2"}, {"word": "table3"}])
 
     @patch('subprocess.check_output')
     def test_get_table_names_for_mysql(self, sb_output):
