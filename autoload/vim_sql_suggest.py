@@ -8,27 +8,6 @@ PSQL_COLUMNS_QUERY= """{0} -c "select column_name from information_schema.column
 MYSQL_TABLES_QUERY= """{0} -e 'SHOW tables;' {1} 2> /dev/null """
 MYSQL_COLUMNS_QUERY= """{0} -e 'SHOW COLUMNS FROM {1}' 2> /dev/null """
 
-def get_db_specific_query_statements(suggest_db):
-    queries = {
-        "oracle_tables": ORACLE_TABLES_QUERY,
-        "oracle_columns": ORACLE_COLUMNS_QUERY,
-        "psql_tables": PSQL_TABLES_QUERY,
-        "psql_columns": PSQL_COLUMNS_QUERY,
-        "mysql_tables": MYSQL_TABLES_QUERY,
-        "mysql_columns": MYSQL_COLUMNS_QUERY
-    }
-    db_type = get_db_type(suggest_db)
-    return (queries[db_type + "_tables"], queries[db_type + "_columns"])
-
-def get_db_type(suggest_db):
-    db_type = suggest_db.split(" ")[0]
-    if find(db_type,"sqlplus") != 0:
-        return db_type
-    else:
-        return "oracle"
-
-def check_command_output(query_string):
-    return subprocess.check_output(query_string, shell=True)
 
 def get_table_names(suggest_db):
     get_tables_query, _ = get_db_specific_query_statements(suggest_db)
@@ -44,6 +23,34 @@ def get_table_names(suggest_db):
     elif db_type == "oracle":
         return [{"word": table} for table in tables.rstrip().split("\n")[1:]]
 
+
+def get_column_names(suggest_db, word_to_complete):
+    if word_to_complete.endswith("."):
+        return create_column_name_list(suggest_db, [{"word": word_to_complete[:-1]}], ".")
+    else:
+        return create_column_name_list(suggest_db, get_table_names(suggest_db))
+
+def get_db_type(suggest_db):
+    db_type = suggest_db.split(" ")[0]
+    if find(db_type,"sqlplus") != 0:
+        return db_type
+    else:
+        return "oracle"
+
+def get_db_specific_query_statements(suggest_db):
+    queries = {
+        "oracle_tables": ORACLE_TABLES_QUERY,
+        "oracle_columns": ORACLE_COLUMNS_QUERY,
+        "psql_tables": PSQL_TABLES_QUERY,
+        "psql_columns": PSQL_COLUMNS_QUERY,
+        "mysql_tables": MYSQL_TABLES_QUERY,
+        "mysql_columns": MYSQL_COLUMNS_QUERY
+    }
+    db_type = get_db_type(suggest_db)
+    return (queries[db_type + "_tables"], queries[db_type + "_columns"])
+
+def check_command_output(query_string):
+    return subprocess.check_output(query_string, shell=True)
 
 def create_column_name_list(suggest_db, tables, prefix=""):
     table_cols = []
@@ -61,9 +68,3 @@ def create_column_name_list(suggest_db, tables, prefix=""):
             table_cols.extend([{"word": prefix + column.strip(), "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[2:-1]])
     return table_cols
 
-
-def get_column_names(suggest_db, word_to_complete):
-    if word_to_complete.endswith("."):
-        return create_column_name_list(suggest_db, [{"word": word_to_complete[:-1]}], ".")
-    else:
-        return create_column_name_list(suggest_db, get_table_names(suggest_db))

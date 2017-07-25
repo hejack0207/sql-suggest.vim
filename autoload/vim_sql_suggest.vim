@@ -12,6 +12,17 @@ python from vim_sql_suggest import *
 " Plugin Function(s)
 " ================================
 
+function! SQLComplete(completeFor)
+    call UpdateWordToComplete()
+    let l:cursorPosition = col('.')
+    execute "normal! A\<space>"
+    call UpdateCompletionList(a:completeFor, b:wordToComplete)
+    call UpdateMatches()
+    redraw!
+    call complete(l:cursorPosition, b:matches)
+    return ''
+endfunc
+
 """
 " The plugin offers to complete either table or columns names. This function
 " delegates to the appropriate python function to populate the completionList
@@ -60,17 +71,6 @@ function! UpdateMatches()
         endfor
     endif
 endfunction
-
-function! SQLComplete(completeFor)
-    call UpdateWordToComplete()
-    let l:cursorPosition = col('.')
-    execute "normal! A\<space>"
-    call UpdateCompletionList(a:completeFor, b:wordToComplete)
-    call UpdateMatches()
-    redraw!
-    call complete(l:cursorPosition, b:matches)
-    return ''
-endfunc
 
 """
 " A convenience function that informs the user of the current database and
