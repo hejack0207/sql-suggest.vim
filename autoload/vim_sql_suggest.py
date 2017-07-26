@@ -1,8 +1,10 @@
 from string import find
 import subprocess
 
-ORACLE_TABLES_QUERY= """{0} 2> /dev/null <<< "select table_name from all_user_table where schema_name = '{1}';" """
-ORACLE_COLUMNS_QUERY= """{0} 2> /dev/null <<< "select column_name from  all_user_columns where table_name = '{1}';" """
+ORACLE_OUTPUT_FILTER = """ | head -n -5 | tail -n +14 | grep -v '^$' | grep -v '\-\{30\}' | grep -v 'TABLE_NAME' """
+ORACLE_TABLES_QUERY= """{0} 2> /dev/null <<< "select table_name from all_user_table where schema_name = '{1}';" | head """ + ORACLE_OUTPUT_FILTER
+ORACLE_COLUMNS_QUERY= """{0} 2> /dev/null <<< "select column_name from  all_user_columns where table_name = '{1}';" """ + ORACLE_OUTPUT_FILTER
+
 PSQL_TABLES_QUERY= """{0} -c "select tablename from pg_tables where schemaname = 'public'" {1} 2> /dev/null """
 PSQL_COLUMNS_QUERY= """{0} -c "select column_name from information_schema.columns where table_name = {1}" 2> /dev/null """
 MYSQL_TABLES_QUERY= """{0} -e 'SHOW tables;' {1} 2> /dev/null """
