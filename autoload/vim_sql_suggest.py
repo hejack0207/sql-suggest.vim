@@ -1,9 +1,9 @@
 from string import find
 import subprocess
 
-ORACLE_TABLES_FILTER = """ | head -n -5 | tail -n +14 | grep -v '^$' | grep -v '"""+'\-'*30+"""' | grep -v 'TABLE_NAME' """
+ORACLE_TABLES_FILTER = """ | grep -v '^$' | grep -v 'rows selected' | grep -v '"""+'\-'*30+"""' | grep -v 'TABLE_NAME' """
 ORACLE_TABLES_QUERY= """{0} 2> /dev/null <<< "select table_name from user_tables;" """ + ORACLE_TABLES_FILTER
-ORACLE_COLUMNS_FILTER = """ | head -n -5 | tail -n +14 | grep -v '^$' | grep -v '"""+'\-'*30+"""' | grep -v 'COLUMN_NAME' """
+ORACLE_COLUMNS_FILTER = """ | grep -v '^$' | grep -v 'rows selected' | grep -v '"""+'\-'*30+"""' | grep -v 'COLUMN_NAME' """
 ORACLE_COLUMNS_QUERY= """{0} 2> /dev/null <<< "select column_name from user_tab_columns where table_name = '{1}';" """ + ORACLE_COLUMNS_FILTER 
 
 PSQL_TABLES_QUERY= """{0} -c "select tablename from pg_tables where schemaname = 'public'" 2> /dev/null """
@@ -23,7 +23,7 @@ def get_table_names(suggest_db):
     elif db_type == "psql":
         return [{"word": table.strip()} for table in tables.rstrip().split("\n")[2:-1]]
     elif db_type == "oracle":
-        return [{"word": table} for table in tables.rstrip().split("\n")[1:]]
+        return [{"word": table} for table in tables.rstrip().split("\n")[14:-3]]
 
 
 def get_column_names(suggest_db, word_to_complete):
@@ -53,7 +53,13 @@ def get_db_type(suggest_db):
 
 def check_command_output(query_string):
     #return subprocess.check_output(query_string, shell=True)
-    return subprocess.check_output(query_string, shell=True, executable="/bin/bash")
+    try:
+        ret = subprocess.check_output(query_string, shell=True, executable="/bin/bash")
+    except subprocess.CalledProcessError, e:
+        print "subprocess error:\n", e.output
+        ret = None
+        
+    return ret
 
 def create_column_name_list(suggest_db, tables, prefix=""):
     table_cols = []
@@ -68,13 +74,10 @@ def create_column_name_list(suggest_db, tables, prefix=""):
         elif db_type == "psql":
             table_cols.extend([{"word": prefix + column.strip(), "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[2:-1]])
         elif db_type == "oracle":
-            table_cols.extend([{"word": prefix + column.strip(), "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[2:-1]])
+            table_cols.extend([{"word": prefix + column.strip(), "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[14:-3]])
     return table_cols
 
 if __name__ == "__main__":
-    #print "{0}:{1}".format("name","value")
-    #print ORACLE_TABLES_QUERY
-    #print ORACLE_TABLES_QUERY.format("name","value")
     print get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"')
     print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_RESOURCE.')
     print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_')
