@@ -1,11 +1,10 @@
 from string import find
 import subprocess
 
-ORACLE_OUTPUT_FILTER = ""
-ORACLE_OUTPUT_FILTER = """ | head -n -5 | tail -n +14 | grep -v '^$' | grep -v '"""+'\-'*30+"""' | grep -v 'TABLE_NAME' """
-ORACLE_TABLES_QUERY= """{0} 2> /dev/null <<< "select table_name from user_tables;" """ + ORACLE_OUTPUT_FILTER
-#ORACLE_TABLES_QUERY= """{0} <<< "select table_name from user_tables;" """ + ORACLE_OUTPUT_FILTER
-ORACLE_COLUMNS_QUERY= """{0} 2> /dev/null <<< "select column_name from  all_user_columns where table_name = '{1}';" """ + ORACLE_OUTPUT_FILTER
+ORACLE_TABLES_FILTER = """ | head -n -5 | tail -n +14 | grep -v '^$' | grep -v '"""+'\-'*30+"""' | grep -v 'TABLE_NAME' """
+ORACLE_TABLES_QUERY= """{0} 2> /dev/null <<< "select table_name from user_tables;" """ + ORACLE_TABLES_FILTER
+ORACLE_COLUMNS_FILTER = """ | head -n -5 | tail -n +14 | grep -v '^$' | grep -v '"""+'\-'*30+"""' | grep -v 'COLUMN_NAME' """
+ORACLE_COLUMNS_QUERY= """{0} 2> /dev/null <<< "select column_name from user_tab_columns where table_name = '{1}';" """ + ORACLE_COLUMNS_FILTER 
 
 PSQL_TABLES_QUERY= """{0} -c "select tablename from pg_tables where schemaname = 'public'" 2> /dev/null """
 PSQL_COLUMNS_QUERY= """{0} -c "select column_name from information_schema.columns where table_name = {1}" 2> /dev/null """
@@ -16,7 +15,7 @@ MYSQL_COLUMNS_QUERY= """{0} -e 'SHOW COLUMNS FROM {1}' 2> /dev/null """
 def get_table_names(suggest_db):
     get_tables_query, _ = get_db_specific_query_statements(suggest_db)
     query_string = get_tables_query.format(suggest_db)
-    print "query string:"+query_string
+    #print "query string:"+query_string
     tables = check_command_output(query_string)
     db_type = get_db_type(suggest_db)
     if db_type == "mysql":
@@ -62,7 +61,7 @@ def create_column_name_list(suggest_db, tables, prefix=""):
     for table in tables:
         table = table["word"]
         query_string = get_db_specific_query_statements(suggest_db)[1].format(suggest_db, table)
-        print "query string:"+query_string
+        #print "query string:"+query_string
         columns = check_command_output(query_string)
         if db_type == "mysql":
             table_cols.extend([{"word": prefix + column.split("\t")[0], "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[1:]])
@@ -77,3 +76,5 @@ if __name__ == "__main__":
     #print ORACLE_TABLES_QUERY
     #print ORACLE_TABLES_QUERY.format("name","value")
     print get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"')
+    print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_RESOURCE.')
+    print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_')
