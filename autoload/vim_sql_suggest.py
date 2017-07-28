@@ -78,7 +78,7 @@ def create_column_name_list(suggest_db, tables, prefix=""):
     return table_cols
 
 if __name__ == "__main__":
-    #print get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"')
+    print get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"')
     print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_RESOURCE.')
     print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','QRTZ_LOCKS.')
     #print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_')

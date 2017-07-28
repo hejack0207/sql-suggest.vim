@@ -12,7 +12,7 @@ python from vim_sql_suggest import *
 " Plugin Function(s)
 " ================================
 
-function! SQLComplete(completeFor)
+function! vim_sql_suggest#SQLComplete(completeFor)
     call UpdateWordToComplete()
     let l:cursorPosition = col('.')
     execute "normal! A\<space>"
