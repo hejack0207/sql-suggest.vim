@@ -23,7 +23,7 @@ def get_table_names(suggest_db):
     elif db_type == "psql":
         return [{"word": table.strip()} for table in tables.rstrip().split("\n")[2:-1]]
     elif db_type == "oracle":
-        return [{"word": table} for table in tables.rstrip().split("\n")[14:-3]]
+        return [{"word": table} for table in tables.rstrip().split("\n")[7:-2]]
 
 
 def get_column_names(suggest_db, word_to_complete):
@@ -74,10 +74,11 @@ def create_column_name_list(suggest_db, tables, prefix=""):
         elif db_type == "psql":
             table_cols.extend([{"word": prefix + column.strip(), "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[2:-1]])
         elif db_type == "oracle":
-            table_cols.extend([{"word": prefix + column.strip(), "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[14:-3]])
+            table_cols.extend([{"word": prefix + column.strip(), "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[7:-2]])
     return table_cols
 
 if __name__ == "__main__":
-    print get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"')
+    #print get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"')
     print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_RESOURCE.')
-    print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_')
+    print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','QRTZ_LOCKS.')
+    #print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_')
