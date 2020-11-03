@@ -15,7 +15,6 @@ MYSQL_COLUMNS_QUERY= """{0} -e 'SHOW COLUMNS FROM {1}' 2> /dev/null """
 def get_table_names(suggest_db):
     get_tables_query, _ = get_db_specific_query_statements(suggest_db)
     query_string = get_tables_query.format(suggest_db)
-    #print "query string:"+query_string
     tables = check_command_output(query_string)
     db_type = get_db_type(suggest_db)
     if db_type == "mysql":
@@ -56,9 +55,9 @@ def check_command_output(query_string):
     try:
         ret = subprocess.check_output(query_string, shell=True, executable="/bin/bash")
     except subprocess.CalledProcessError, e:
-        print "subprocess error:\n", e.output
+        print("subprocess error:\n", e.output)
         ret = None
-        
+
     return ret
 
 def create_column_name_list(suggest_db, tables, prefix=""):
@@ -67,7 +66,6 @@ def create_column_name_list(suggest_db, tables, prefix=""):
     for table in tables:
         table = table["word"]
         query_string = get_db_specific_query_statements(suggest_db)[1].format(suggest_db, table)
-        #print "query string:"+query_string
         columns = check_command_output(query_string)
         if db_type == "mysql":
             table_cols.extend([{"word": prefix + column.split("\t")[0], "menu": table, "dup": 1} for column in columns.rstrip().split("\n")[1:]])
@@ -78,7 +76,6 @@ def create_column_name_list(suggest_db, tables, prefix=""):
     return table_cols
 
 if __name__ == "__main__":
-    print get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"')
-    print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_RESOURCE.')
-    print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','QRTZ_LOCKS.')
-    #print get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_')
+    print(get_table_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"'))
+    print(get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','T_DGAP_RESOURCE.'))
+    print(get_column_names('sqlplus64 "gjzspt/12345678@192.168.21.249/gjzs"','QRTZ_LOCKS.'))
